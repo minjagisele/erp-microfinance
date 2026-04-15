@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">
+        <i class="fas fa-money-bill-wave me-2"></i>
+        Prêt {{ loan.code }}
+    </h2>
+    <div>
+        {% if loan.status == 'pending' %}
+        <a href="{{ url_for('loans.approve', id=loan.id) }}" class="btn btn-success me-2">
+            <i class="fas fa-check me-2"></i>
+            Approuver
+        </a>
+        {% endif %}
+        {% if loan.status == 'approved' %}
+        <a href="{{ url_for('payments.create', loan_id=loan.id) }}" class="btn btn-primary me-2">
+            <i class="fas fa-plus me-2"></i>
+            Enregistrer Paiement
+        </a>
+        <a href="{{ url_for('loans.schedule', id=loan.id) }}" class="btn btn-outline-info me-2">
+            <i class="fas fa-calendar me-2"></i>
+            Échéancier
+        </a>
+        {% endif %}
+        <a href="{{ url_for('loans.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>
+            Retour
+        </a>
+    </div>
+</div>
+
+<!-- Informations du prêt -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informations du prêt
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless table-sm">
+                            <tr>
+                                <td class="text-muted fw-bold" style="width: 150px;">Code:</td>
+                                <td><span class="badge bg-primary">{{ loan.code }}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Client:</td>
+                                <td>
+                                    <a href="{{ url_for('clients.view', id=loan.client.id) }}" class="text-primary">
+                                        {{ loan.client.full_name }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ loan.client.phone }}</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Type:</td>
+                                <td>
+                                    <span class="badge badge-info">
+                                        {{ 'Espèces' if loan.loan_type.value == 'cash' else 'Intrants' }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Statut:</td>
+                                <td>
+                                    <span class="badge badge-{{ 
+                                        'success' if loan.status == 'approved' 
+                                        else 'warning' if loan.status == 'pending' 
+                                        else 'danger' if loan.status == 'rejected' 
+                                        else 'primary' if loan.status == 'completed'
+                                        else 'danger' }}">
+                                        {{ loan.status|title }}
+                                        {% if loan.is_overdue %}
+                                            <i class="fas fa-exclamation-triangle ms-1"></i>
+                                        {% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Date création:</td>
+                                <td>{{ loan.created_at.strftime('%d/%m/%Y') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <table class="table table-borderless table-sm">
+                            <tr>
+                                <td class="text-muted fw-bold" style="width: 150px;">Montant:</td>
+                                <td class="amount">{{ "{:,.0f}".format(loan.amount) }} FCFA</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Taux d'intérêt:</td>
+                                <td>{{ "%.1f"|format(loan.interest_rate) }}%</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Durée:</td>
+                                <td>{{ loan.duration_months }} mois</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Fréquence:</td>
+                                <td>
+                                    {{ 'Journalier' if loan.repayment_frequency.value == 'daily' 
+                                      else 'Hebdomadaire' if loan.repayment_frequency.value == 'weekly' 
+                                      else 'Mensuel' }}
+                                </td>
+                            </tr>
+                            {% if loan.disbursement_date %}
+                            <tr>
+                                <td class="text-muted fw-bold">Date déboursement:</td>
+                                <td>{{ loan.disbursement_date.strftime('%d/%m/%Y') }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                        
+                        {% if loan.purpose %}
+                        <div class="mt-3">
+                            <strong class="text-muted">Objet du prêt:</strong>
+                            <p class="mb-0">{{ loan.purpose }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h6 class="mb-3">Résumé financier</h6>
+                <div class="mb-2">
+                    <small>Capital emprunté</small>
+                    <h4 class="mb-0">{{ "{:,.0f}".format(loan.amount) }}</h4>
+                </div>
+                <div class="mb-2">
+                    <small>Total intérêts</small>
+                    <h5 class="mb-0">{{ "{:,.0f}".format(loan.total_interest) }}</h5>
+                </div>
+                <div class="mb-2">
+                    <small>Total dû</small>
+                    <h4 class="mb-0">{{ "{:,.0f}".format(loan.total_amount_due) }}</h4>
+                </div>
+                <div class="mb-2">
+                    <small>Montant remboursé</small>
+                    <h5 class="mb-0">{{ "{:,.0f}".format(loan.total_paid) }}</h5>
+                </div>
+                <div>
+                    <small>Solde restant</small>
+                    <h4 class="mb-0">{{ "{:,.0f}".format(loan.outstanding_balance) }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-info text-white">
+            <div class="stat-value">{{ summary.pending_count }}</div>
+            <div class="stat-label">Échéances en attente</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-warning text-white">
+            <div class="stat-value">{{ summary.overdue_count }}</div>
+            <div class="stat-label">Échéances en retard</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-success text-white">
+            <div class="stat-value">{{ "{:,.0f}".format(loan.next_payment_amount) }}</div>
+            <div class="stat-label">Prochaine échéance</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card {{ 'bg-danger' if loan.is_overdue else 'bg-primary' }} text-white">
+            <div class="stat-value">{{ loan.overdue_days if loan.is_overdue else 0 }}</div>
+            <div class="stat-label">Jours de retard</div>
+        </div>
+    </div>
+</div>
+
+<!-- Historique des paiements -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-history me-2"></i>
+            Historique des paiements
+            {% if loan.payments.count() > 0 %}
+            <span class="badge bg-secondary ms-2">{{ loan.payments.count() }}</span>
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if loan.payments.count() > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Montant</th>
+                            <th>Méthode</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in loan.payments.order_by(payment.created_at.desc()).limit(10) %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('payments.view', id=payment.id) }}" class="text-primary">
+                                    {{ payment.code }}
+                                </a>
+                            </td>
+                            <td class="amount amount-positive">{{ "{:,.0f}".format(payment.amount) }}</td>
+                            <td>
+                                <span class="badge badge-secondary">
+                                    {{ payment.payment_method|title }}
+                                </span>
+                            </td>
+                            <td>{{ payment.payment_date.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                <span class="badge badge-{{ 'success' if payment.status == 'paid' else 'warning' }}">
+                                    {{ payment.status|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('payments.view', id=payment.id) }}" 
+                                       class="btn btn-outline-primary" title="Voir">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if loan.payments.count() > 10 %}
+            <div class="text-center mt-3">
+                <a href="{{ url_for('payments.index', loan_id=loan.id) }}" class="btn btn-outline-primary">
+                    <i class="fas fa-list me-2"></i>
+                    Voir tous les paiements
+                </a>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-credit-card fa-2x text-muted mb-3"></i>
+                <h5 class="text-muted">Aucun paiement</h5>
+                <p class="text-muted">Ce prêt n'a pas encore de paiement enregistré</p>
+                {% if loan.status == 'approved' %}
+                <a href="{{ url_for('payments.create', loan_id=loan.id) }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Enregistrer un paiement
+                </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

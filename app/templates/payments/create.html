@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 col-lg-6 mx-auto">
+        <div class="card shadow fade-in">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-credit-card me-2"></i>
+                    Enregistrer un Paiement
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Informations du prêt -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Informations du prêt
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Code:</strong> {{ loan.code }}</p>
+                                <p class="mb-1"><strong>Client:</strong> {{ loan.client.full_name }}</p>
+                                <p class="mb-1"><strong>Téléphone:</strong> {{ loan.client.phone }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Montant total:</strong> <span class="amount">{{ "{:,.0f}".format(loan.total_amount_due) }}</span></p>
+                                <p class="mb-1"><strong>Déjà payé:</strong> <span class="amount amount-positive">{{ "{:,.0f}".format(loan.total_paid) }}</span></p>
+                                <p class="mb-1"><strong>Solde restant:</strong> <span class="amount amount-negative">{{ "{:,.0f}".format(loan.outstanding_balance) }}</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            {{ form.amount.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.amount(class="form-control", placeholder="0", value=loan.next_payment_amount) }}
+                                <span class="input-group-text">FCFA</span>
+                            </div>
+                            {% if form.amount.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.amount.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Montant de la prochaine échéance: {{ "{:,.0f}".format(loan.next_payment_amount) }} FCFA</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.payment_method.label(class="form-label") }}
+                            {{ form.payment_method(class="form-select") }}
+                            {% if form.payment_method.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.payment_method.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {{ form.payment_date.label(class="form-label") }}
+                            {{ form.payment_date(class="form-control") }}
+                            {% if form.payment_date.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.payment_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            {{ form.reference_number.label(class="form-label") }}
+                            {{ form.reference_number(class="form-control", placeholder="Numéro de référence (optionnel)") }}
+                            {% if form.reference_number.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.reference_number.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            {{ form.notes.label(class="form-label") }}
+                            {{ form.notes(class="form-control", placeholder="Notes sur le paiement...", rows="3") }}
+                            {% if form.notes.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.notes.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Échéances en attente -->
+                    {% if loan.schedules.filter_by(status='pending').count() > 0 %}
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-calendar me-2"></i>
+                            Échéances en attente
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>N°</th>
+                                        <th>Date</th>
+                                        <th>Montant</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for schedule in loan.schedules.filter_by(status='pending').limit(5) %}
+                                    <tr>
+                                        <td>{{ schedule.installment_number }}</td>
+                                        <td>{{ schedule.due_date.strftime('%d/%m/%Y') }}</td>
+                                        <td class="amount">{{ "{:,.0f}".format(schedule.total_amount) }}</td>
+                                        <td>
+                                            {% if schedule.is_overdue %}
+                                                <span class="badge badge-danger">{{ schedule.overdue_days }} jours de retard</span>
+                                            {% else %}
+                                                <span class="badge badge-success">À jour</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Boutons d'action -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('loans.view', id=loan.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Retour au prêt
+                        </a>
+                        <div>
+                            <button type="reset" class="btn btn-outline-warning me-2">
+                                <i class="fas fa-redo me-2"></i>
+                                Réinitialiser
+                            </button>
+                            {{ form.submit(class="btn btn-success") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Validation du formulaire
+document.querySelector('form').addEventListener('submit', function(e) {
+    const amount = parseFloat(document.getElementById('amount').value) || 0;
+    const outstandingBalance = parseFloat('{{ loan.outstanding_balance }}');
+    
+    if (amount <= 0) {
+        e.preventDefault();
+        showNotification('Le montant doit être positif', 'danger');
+        return false;
+    }
+    
+    if (amount > outstandingBalance) {
+        if (!confirm(`Le montant saisi (${amount.toLocaleString('fr-FR')} FCFA) dépasse le solde restant (${outstandingBalance.toLocaleString('fr-FR')} FCFA). Voulez-vous continuer?`)) {
+            e.preventDefault();
+            return false;
+        }
+    }
+});
+
+// Mettre la date du jour par défaut
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('payment_date');
+    if (!dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+});
+</script>
+{% endblock %}

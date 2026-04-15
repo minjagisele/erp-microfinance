@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Header du Dashboard -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">
+        <i class="fas fa-tachometer-alt me-2"></i>
+        Tableau de bord
+    </h2>
+    <div>
+        <button class="btn btn-outline-primary btn-sm" onclick="refreshDashboard()" id="refreshBtn">
+            <i class="fas fa-sync-alt me-1"></i>
+            Actualiser
+        </button>
+        <button class="btn btn-outline-secondary btn-sm ms-2" onclick="printReport()" id="printBtn">
+            <i class="fas fa-print me-1"></i>
+            Imprimer
+        </button>
+    </div>
+</div>
+
+<!-- Statistiques principales -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-primary text-white">
+            <div class="stat-value">{{ stats.total_clients }}</div>
+            <div class="stat-label">Clients Actifs</div>
+            <div class="mt-2">
+                <small>
+                    <i class="fas fa-arrow-up"></i>
+                    +{{ stats.new_clients_this_month }} ce mois
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-success text-white">
+            <div class="stat-value">{{ stats.active_loans }}</div>
+            <div class="stat-label">Prêts Actifs</div>
+            <div class="mt-2">
+                <small>
+                    <i class="fas fa-arrow-up"></i>
+                    +{{ stats.new_loans_this_month }} ce mois
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-info text-white">
+            <div class="stat-value">{{ "{:,.0f}".format(stats.outstanding_balance) }}</div>
+            <div class="stat-label">Encours Total</div>
+            <div class="mt-2">
+                <small>
+                    <i class="fas fa-percentage"></i>
+                    {{ "%.1f"|format(stats.repayment_rate) }} remboursé
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-warning text-white">
+            <div class="stat-value">{{ stats.overdue_count }}</div>
+            <div class="stat-label">Retards</div>
+            <div class="mt-2">
+                <small>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {{ "{:,.0f}".format(stats.overdue_amount) }} FCFA
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Graphiques et activité récente -->
+<div class="row mb-4">
+    <div class="col-lg-8 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Évolution des prêts et paiements
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <canvas id="loansChart"></canvas>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <canvas id="paymentsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Répartition des prêts
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertes et échéances -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-3">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Échéances en retard
+                    <span class="badge bg-light text-danger ms-2">{{ overdue_schedules|length }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if overdue_schedules %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Prêt</th>
+                                    <th>Retard</th>
+                                    <th>Montant</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for schedule in overdue_schedules %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ schedule.loan.client.full_name }}</div>
+                                        <small class="text-muted">{{ schedule.loan.client.phone }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ schedule.loan.code }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ schedule.overdue_days }} jours</span>
+                                    </td>
+                                    <td class="amount amount-negative">
+                                        {{ "{:,.0f}".format(schedule.remaining_amount) }}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('payments.create', loan_id=schedule.loan.id) }}" 
+                                           class="btn btn-sm btn-success">
+                                            <i class="fas fa-plus"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <p>Aucune échéance en retard</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-3">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    Échéances à venir (7 jours)
+                    <span class="badge bg-light text-warning ms-2">{{ upcoming_schedules|length }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_schedules %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Prêt</th>
+                                    <th>Date</th>
+                                    <th>Montant</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for schedule in upcoming_schedules %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ schedule.loan.client.full_name }}</div>
+                                        <small class="text-muted">{{ schedule.loan.client.phone }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ schedule.loan.code }}</span>
+                                    </td>
+                                    <td>
+                                        <small>{{ schedule.due_date.strftime('%d/%m/%Y') }}</small>
+                                    </td>
+                                    <td class="amount">
+                                        {{ "{:,.0f}".format(schedule.total_amount) }}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('payments.create', loan_id=schedule.loan.id) }}" 
+                                           class="btn btn-sm btn-success">
+                                            <i class="fas fa-plus"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                        <p>Aucune échéance à venir</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activité récente -->
+<div class="row">
+    <div class="col-lg-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-money-bill-wave me-2"></i>
+                    Prêts récents
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Client</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in recent_loans %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('loans.view', id=loan.id) }}" class="text-primary">
+                                        {{ loan.code }}
+                                    </a>
+                                </td>
+                                <td>{{ loan.client.full_name }}</td>
+                                <td class="amount">{{ "{:,.0f}".format(loan.amount) }}</td>
+                                <td>
+                                    <span class="badge badge-{{ 
+                                        'success' if loan.status == 'approved' 
+                                        else 'warning' if loan.status == 'pending' 
+                                        else 'danger' if loan.status == 'rejected' 
+                                        else 'primary' }}">
+                                        {{ loan.status|title }}
+                                    </span>
+                                </td>
+                                <td>{{ loan.created_at.strftime('%d/%m/%Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-credit-card me-2"></i>
+                    Paiements récents
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Client</th>
+                                <th>Montant</th>
+                                <th>Méthode</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in recent_payments %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('payments.view', id=payment.id) }}" class="text-primary">
+                                        {{ payment.code }}
+                                    </a>
+                                </td>
+                                <td>{{ payment.loan.client.full_name }}</td>
+                                <td class="amount amount-positive">{{ "{:,.0f}".format(payment.amount) }}</td>
+                                <td>
+                                    <span class="badge badge-secondary">
+                                        {{ payment.payment_method|title }}
+                                    </span>
+                                </td>
+                                <td>{{ payment.payment_date.strftime('%d/%m/%Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Les graphiques seront initialisés automatiquement par main.js
+</script>
+{% endblock %}

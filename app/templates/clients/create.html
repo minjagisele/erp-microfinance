@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 col-lg-8 mx-auto">
+        <div class="card shadow fade-in">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Nouveau Client
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Informations de base -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-user me-2"></i>
+                                Informations de base
+                            </h5>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.first_name.label(class="form-label") }}
+                            {{ form.first_name(class="form-control", placeholder="Prénom") }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.first_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.last_name.label(class="form-label") }}
+                            {{ form.last_name(class="form-control", placeholder="Nom") }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.last_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.phone.label(class="form-label") }}
+                            {{ form.phone(class="form-control", placeholder="Téléphone") }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.phone.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control", placeholder="Email (optionnel)") }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-12 mb-3">
+                            {{ form.address.label(class="form-label") }}
+                            {{ form.address(class="form-control", placeholder="Adresse complète", rows="2") }}
+                            {% if form.address.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.address.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.activity.label(class="form-label") }}
+                            {{ form.activity(class="form-control", placeholder="Activité professionnelle") }}
+                            {% if form.activity.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.activity.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.monthly_income.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.monthly_income(class="form-control", placeholder="0") }}
+                                <span class="input-group-text">FCFA</span>
+                            </div>
+                            {% if form.monthly_income.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.monthly_income.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Informations additionnelles -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-id-card me-2"></i>
+                                Informations additionnelles
+                                <small class="text-muted">(optionnel)</small>
+                            </h5>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.id_card_number.label(class="form-label") }}
+                            {{ form.id_card_number(class="form-control", placeholder="Numéro de pièce") }}
+                            {% if form.id_card_number.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.id_card_number.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.id_card_type.label(class="form-label") }}
+                            {{ form.id_card_type(class="form-select") }}
+                            {% if form.id_card_type.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.id_card_type.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.birth_date.label(class="form-label") }}
+                            {{ form.birth_date(class="form-control") }}
+                            {% if form.birth_date.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.birth_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.gender.label(class="form-label") }}
+                            {{ form.gender(class="form-select") }}
+                            {% if form.gender.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.gender.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.marital_status.label(class="form-label") }}
+                            {{ form.marital_status(class="form-select") }}
+                            {% if form.marital_status.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.marital_status.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            {{ form.number_of_children.label(class="form-label") }}
+                            {{ form.number_of_children(class="form-control", placeholder="0") }}
+                            {% if form.number_of_children.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.number_of_children.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Boutons d'action -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('clients.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Annuler
+                        </a>
+                        <div>
+                            <button type="reset" class="btn btn-outline-warning me-2">
+                                <i class="fas fa-redo me-2"></i>
+                                Réinitialiser
+                            </button>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Validation du formulaire
+document.querySelector('form').addEventListener('submit', function(e) {
+    const phone = document.getElementById('phone').value;
+    if (phone && phone.length < 8) {
+        e.preventDefault();
+        showNotification('Le numéro de téléphone doit contenir au moins 8 chiffres', 'danger');
+        return false;
+    }
+});
+</script>
+{% endblock %}

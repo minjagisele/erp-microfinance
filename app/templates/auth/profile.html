@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 col-lg-6 mx-auto">
+        <div class="card shadow fade-in">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-user-circle me-2"></i>
+                    Mon Profil
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="avatar-placeholder bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px; font-size: 2rem;">
+                            {{ user.first_name[0]|upper }}{{ user.last_name[0]|upper }}
+                        </div>
+                        <h5 class="mt-2 mb-0">{{ user.full_name }}</h5>
+                        <span class="badge badge-{{ 'primary' if user.role == 'admin' else 'secondary' }}">
+                            {{ 'Administrateur' if user.role == 'admin' else 'Agent' }}
+                        </span>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="text-muted fw-bold">Nom d'utilisateur:</td>
+                                <td>{{ user.username }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Email:</td>
+                                <td>{{ user.email or 'Non défini' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Téléphone:</td>
+                                <td>{{ user.phone }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Rôle:</td>
+                                <td>
+                                    <span class="badge badge-{{ 'primary' if user.role == 'admin' else 'secondary' }}">
+                                        {{ 'Administrateur' if user.role == 'admin' else 'Agent' }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Statut:</td>
+                                <td>
+                                    <span class="badge badge-success">
+                                        Actif
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Dernière connexion:</td>
+                                <td>{{ user.last_login.strftime('%d/%m/%Y %H:%M') if user.last_login else 'Jamais' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted fw-bold">Date de création:</td>
+                                <td>{{ user.created_at.strftime('%d/%m/%Y') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Retour au tableau de bord
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i>
+                        Déconnexion
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

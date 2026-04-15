@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 col-lg-8 mx-auto">
+        <div class="card shadow fade-in">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-money-bill-wave me-2"></i>
+                    Nouveau Prêt
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Sélection du client -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-user me-2"></i>
+                                Client
+                            </h5>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.client_id.label(class="form-label") }}
+                            {{ form.client_id(class="form-select") }}
+                            {% if form.client_id.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.client_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Paramètres du prêt -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-cog me-2"></i>
+                                Paramètres du prêt
+                            </h5>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.amount.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.amount(class="form-control", placeholder="0") }}
+                                <span class="input-group-text">FCFA</span>
+                            </div>
+                            {% if form.amount.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.amount.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.interest_rate.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.interest_rate(class="form-control", placeholder="0") }}
+                                <span class="input-group-text">%</span>
+                            </div>
+                            {% if form.interest_rate.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.interest_rate.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.duration_months.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.duration_months(class="form-control", placeholder="0") }}
+                                <span class="input-group-text">mois</span>
+                            </div>
+                            {% if form.duration_months.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.duration_months.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.loan_type.label(class="form-label") }}
+                            {{ form.loan_type(class="form-select") }}
+                            {% if form.loan_type.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.loan_type.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.repayment_frequency.label(class="form-label") }}
+                            {{ form.repayment_frequency(class="form-select") }}
+                            {% if form.repayment_frequency.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.repayment_frequency.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3" id="inputValueGroup" style="display: none;">
+                            {{ form.input_value.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.input_value(class="form-control", placeholder="0") }}
+                                <span class="input-group-text">FCFA</span>
+                            </div>
+                            {% if form.input_value.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.input_value.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.first_payment_date.label(class="form-label") }}
+                            {{ form.first_payment_date(class="form-control") }}
+                            {% if form.first_payment_date.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.first_payment_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Détails additionnels -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Détails additionnels
+                            </h5>
+                        </div>
+                        
+                        <div class="col-12 mb-3">
+                            {{ form.purpose.label(class="form-label") }}
+                            {{ form.purpose(class="form-control", placeholder="Objet du prêt...", rows="3") }}
+                            {% if form.purpose.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.purpose.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Aperçu du calcul -->
+                    <div class="row mb-4" id="loanPreview" style="display: none;">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-calculator me-2"></i>
+                                        Aperçu du calcul
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-md-3">
+                                            <small class="text-muted">Capital</small>
+                                            <h5 id="previewCapital" class="text-primary">0 FCFA</h5>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted">Intérêts</small>
+                                            <h5 id="previewInterest" class="text-warning">0 FCFA</h5>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted">Total dû</small>
+                                            <h5 id="previewTotal" class="text-info">0 FCFA</h5>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted">Échéance</small>
+                                            <h5 id="previewInstallment" class="text-success">0 FCFA</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Boutons d'action -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('loans.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Annuler
+                        </a>
+                        <div>
+                            <button type="reset" class="btn btn-outline-warning me-2">
+                                <i class="fas fa-redo me-2"></i>
+                                Réinitialiser
+                            </button>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Afficher/masquer le champ valeur intrants
+document.getElementById('loan_type').addEventListener('change', function() {
+    const inputValueGroup = document.getElementById('inputValueGroup');
+    if (this.value === 'inputs') {
+        inputValueGroup.style.display = 'block';
+        document.getElementById('input_value').required = true;
+    } else {
+        inputValueGroup.style.display = 'none';
+        document.getElementById('input_value').required = false;
+        document.getElementById('input_value').value = '';
+    }
+    updatePreview();
+});
+
+// Calculer l'aperçu en temps réel
+function updatePreview() {
+    const amount = parseFloat(document.getElementById('amount').value) || 0;
+    const rate = parseFloat(document.getElementById('interest_rate').value) || 0;
+    const duration = parseInt(document.getElementById('duration_months').value) || 0;
+    const frequency = document.getElementById('repayment_frequency').value;
+    
+    if (amount > 0 && rate > 0 && duration > 0) {
+        // Calcul des intérêts simples
+        const interest = amount * (rate / 100) * (duration / 12);
+        const total = amount + interest;
+        
+        // Calcul du nombre d'échéances
+        let installments = duration;
+        if (frequency === 'daily') {
+            installments = duration * 30;
+        } else if (frequency === 'weekly') {
+            installments = duration * 4;
+        }
+        
+        const installmentAmount = total / installments;
+        
+        // Affichage
+        document.getElementById('previewCapital').textContent = amount.toLocaleString('fr-FR') + ' FCFA';
+        document.getElementById('previewInterest').textContent = interest.toLocaleString('fr-FR') + ' FCFA';
+        document.getElementById('previewTotal').textContent = total.toLocaleString('fr-FR') + ' FCFA';
+        document.getElementById('previewInstallment').textContent = installmentAmount.toLocaleString('fr-FR') + ' FCFA';
+        
+        document.getElementById('loanPreview').style.display = 'block';
+    } else {
+        document.getElementById('loanPreview').style.display = 'none';
+    }
+}
+
+// Écouter les changements
+['amount', 'interest_rate', 'duration_months', 'repayment_frequency'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreview);
+});
+
+// Validation du formulaire
+document.querySelector('form').addEventListener('submit', function(e) {
+    const amount = parseFloat(document.getElementById('amount').value) || 0;
+    const rate = parseFloat(document.getElementById('interest_rate').value) || 0;
+    const duration = parseInt(document.getElementById('duration_months').value) || 0;
+    
+    if (amount < 1000) {
+        e.preventDefault();
+        showNotification('Le montant minimum du prêt est de 1,000 FCFA', 'danger');
+        return false;
+    }
+    
+    if (duration > 60) {
+        e.preventDefault();
+        showNotification('La durée maximum est de 60 mois', 'danger');
+        return false;
+    }
+});
+</script>
+{% endblock %}

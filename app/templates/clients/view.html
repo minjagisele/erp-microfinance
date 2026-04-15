@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">
+        <i class="fas fa-user me-2"></i>
+        {{ client.full_name }}
+    </h2>
+    <div>
+        <a href="{{ url_for('clients.edit', id=client.id) }}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-edit me-2"></i>
+            Modifier
+        </a>
+        <a href="{{ url_for('loans.create') }}?client_id={{ client.id }}" class="btn btn-primary">
+            <i class="fas fa-money-bill-wave me-2"></i>
+            Nouveau Prêt
+        </a>
+    </div>
+</div>
+
+<!-- Informations du client -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informations du client
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="avatar-placeholder bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px; font-size: 1.5rem;">
+                            {{ client.first_name[0]|upper }}{{ client.last_name[0]|upper }}
+                        </div>
+                        <h6 class="mt-2 mb-0">{{ client.full_name }}</h6>
+                        <span class="badge bg-primary">{{ client.code }}</span>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <table class="table table-borderless table-sm">
+                            <tr>
+                                <td class="text-muted fw-bold" style="width: 150px;">Téléphone:</td>
+                                <td>{{ client.phone }}</td>
+                            </tr>
+                            {% if client.email %}
+                            <tr>
+                                <td class="text-muted fw-bold">Email:</td>
+                                <td>{{ client.email }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if client.address %}
+                            <tr>
+                                <td class="text-muted fw-bold">Adresse:</td>
+                                <td>{{ client.address }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td class="text-muted fw-bold">Activité:</td>
+                                <td>{{ client.activity }}</td>
+                            </tr>
+                            {% if client.monthly_income %}
+                            <tr>
+                                <td class="text-muted fw-bold">Revenu mensuel:</td>
+                                <td class="amount">{{ "{:,.0f}".format(client.monthly_income) }} FCFA</td>
+                            </tr>
+                            {% endif %}
+                            {% if client.id_card_number %}
+                            <tr>
+                                <td class="text-muted fw-bold">Pièce d'identité:</td>
+                                <td>{{ client.id_card_number }} ({{ client.id_card_type or 'Non spécifié' }})</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td class="text-muted fw-bold">Date de création:</td>
+                                <td>{{ client.created_at.strftime('%d/%m/%Y') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h6 class="mb-3">Résumé financier</h6>
+                <div class="mb-2">
+                    <small>Total emprunté</small>
+                    <h4 class="mb-0">{{ "{:,.0f}".format(summary.total_borrowed) }}</h4>
+                </div>
+                <div class="mb-2">
+                    <small>Total remboursé</small>
+                    <h5 class="mb-0">{{ "{:,.0f}".format(summary.total_repaid) }}</h5>
+                </div>
+                <div class="mb-2">
+                    <small>Solde restant</small>
+                    <h4 class="mb-0">{{ "{:,.0f}".format(summary.outstanding_balance) }}</h4>
+                </div>
+                <div>
+                    <small>Taux de remboursement</small>
+                    <h5 class="mb-0">{{ "%.1f"|format(summary.repayment_rate) }}%</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques des prêts -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-info text-white">
+            <div class="stat-value">{{ summary.total_loans }}</div>
+            <div class="stat-label">Total Prêts</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-success text-white">
+            <div class="stat-value">{{ summary.active_loans }}</div>
+            <div class="stat-label">Prêts Actifs</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-warning text-white">
+            <div class="stat-value">{{ summary.overdue_loans }}</div>
+            <div class="stat-label">En Retard</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-primary text-white">
+            <div class="stat-value">{{ summary.completed_loans }}</div>
+            <div class="stat-label">Terminés</div>
+        </div>
+    </div>
+</div>
+
+<!-- Prêts du client -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-money-bill-wave me-2"></i>
+            Prêts du client
+            <span class="badge bg-secondary ms-2">{{ summary.total_loans }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if summary.recent_loans %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Montant</th>
+                            <th>Taux</th>
+                            <th>Durée</th>
+                            <th>Statut</th>
+                            <th>Solde</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in summary.recent_loans %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('loans.view', id=loan.id) }}" class="text-primary">
+                                    {{ loan.code }}
+                                </a>
+                            </td>
+                            <td class="amount">{{ "{:,.0f}".format(loan.amount) }}</td>
+                            <td>{{ "%.1f"|format(loan.interest_rate) }}%</td>
+                            <td>{{ loan.duration_months }} mois</td>
+                            <td>
+                                <span class="badge badge-{{ 
+                                    'success' if loan.status == 'approved' 
+                                    else 'warning' if loan.status == 'pending' 
+                                    else 'danger' if loan.status == 'rejected' 
+                                    else 'primary' if loan.status == 'completed'
+                                    else 'danger' }}">
+                                    {{ loan.status|title }}
+                                    {% if loan.is_overdue %}
+                                        <i class="fas fa-exclamation-triangle ms-1"></i>
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="amount {{ 'amount-negative' if loan.outstanding_balance > 0 else '' }}">
+                                {{ "{:,.0f}".format(loan.outstanding_balance) }}
+                            </td>
+                            <td>{{ loan.created_at.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('loans.view', id=loan.id) }}" 
+                                       class="btn btn-outline-primary" title="Voir">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if loan.status == 'approved' %}
+                                    <a href="{{ url_for('payments.create', loan_id=loan.id) }}" 
+                                       class="btn btn-outline-success" title="Paiement">
+                                        <i class="fas fa-plus"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if summary.total_loans > 5 %}
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    Affichage des 5 derniers prêts sur {{ summary.total_loans }}
+                </small>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-money-bill-wave fa-2x text-muted mb-3"></i>
+                <h5 class="text-muted">Aucun prêt</h5>
+                <p class="text-muted">Ce client n'a pas encore de prêt</p>
+                <a href="{{ url_for('loans.create') }}?client_id={{ client.id }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Créer un prêt
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="mt-4">
+    <a href="{{ url_for('clients.index') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>
+        Retour à la liste
+    </a>
+</div>
+{% endblock %}
